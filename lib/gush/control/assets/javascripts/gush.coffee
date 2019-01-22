@@ -4,7 +4,7 @@ class @Gush
     @machines = {}
 
   initialize: (jobs) ->
-    @appPrefix = $('body').data('app-prefix')
+    @appPrefix = $('body').data('app-prefix').split('/')[1]
     @registerSockets()
     @displayCurrentWorkflows()
     @displayJobsOverview(jobs)
@@ -41,7 +41,7 @@ class @Gush
       @refreshJobList()
 
   registerWorkersSocket: ->
-    workersSocket = new WebSocket(@_socketUrl("subscribe/workers.status"))
+    workersSocket = new WebSocket(@_socketUrl("#{@appPrefix}/subscribe/workers.status"))
 
     workersSocket.onopen    = @_onOpen
     workersSocket.onerror   = @_onError
@@ -49,7 +49,7 @@ class @Gush
     workersSocket.onclose   = @_onClose
 
   registerWorkflowsSocket: ->
-    workflowsSocket = new WebSocket(@_socketUrl("workflows.status"))
+    workflowsSocket = new WebSocket(@_socketUrl("#{@appPrefix}/subscribe/workflows.status"))
 
     workflowsSocket.onopen    = @_onOpen
     workflowsSocket.onerror   = @_onError
@@ -57,7 +57,7 @@ class @Gush
     workflowsSocket.onclose   = @_onClose
 
   registerMachinesSocket: ->
-    machinesSocket = new WebSocket(@_socketUrl("workers"))
+    machinesSocket = new WebSocket(@_socketUrl("#{@appPrefix}/workers"))
 
     machinesSocket.onopen    = @_onOpen
     machinesSocket.onerror   = @_onError
@@ -66,7 +66,7 @@ class @Gush
     machinesSocket.onclose   = @_onClose
 
   registerLogsSocket: (workflow, job) =>
-    logsSocket = new WebSocket(@_socketUrl("logs/#{workflow}.#{job}"))
+    logsSocket = new WebSocket(@_socketUrl("#{@appPrefix}/logs/#{workflow}.#{job}"))
 
     @_registerScrollHook(logsSocket)
 
@@ -78,7 +78,7 @@ class @Gush
 
   startWorkflow: (workflow, el) ->
     $.ajax
-      url: "/start/" + workflow,
+      url: "/#{@appPrefix}/start/" + workflow,
       type: "POST",
       error: (response) ->
         console.log(response)
@@ -93,16 +93,16 @@ class @Gush
 
   startJob: (workflow, job, el) ->
     $.ajax
-      url: "/start/#{workflow}/#{job}",
+      url: "/#{@appPrefix}/start/#{workflow}/#{job}",
       type: "POST",
       error: (response) ->
         console.log(response)
       success: () ->
-        window.location.href = "/show/#{workflow}"
+        window.location.href = "/#{@appPrefix}/show/#{workflow}"
 
   stopWorkflow: (workflow, el) ->
     $.ajax
-      url: "/stop/" + workflow,
+      url: "/#{@appPrefix}/stop/" + workflow,
       type: "POST",
       error: (response) ->
         console.log(response)
@@ -117,7 +117,7 @@ class @Gush
 
   retryWorkflow: (workflow_id) ->
     $.ajax
-      url: "/show/#{workflow_id}.json",
+      url: "/#{@appPrefix}/show/#{workflow_id}.json",
       type: "GET",
       success: (response) =>
         response.jobs.each (job) =>
@@ -126,39 +126,39 @@ class @Gush
 
   createWorkflow: (workflow) ->
     $.ajax
-      url: "/create/" + workflow,
+      url: "/#{@appPrefix}/create/" + workflow,
       type: "POST",
       error: (response) ->
         console.log(response)
       success: (response) =>
-        window.location.href = "/show/#{response.id}"
+        window.location.href = "/#{@appPrefix}/show/#{response.id}"
 
   destroyWorkflow: (workflow) ->
     $.ajax
-      url: "/destroy/" + workflow,
+      url: "/#{@appPrefix}/destroy/" + workflow,
       type: "POST",
       error: (response) ->
         console.log(response)
       success: (response) =>
-        window.location.href = "/"
+        window.location.href = "/#{@appPrefix}/"
 
   removeCompleted: ->
     $.ajax
-      url: "/purge",
+      url: "/#{@appPrefix}/purge",
       type: "POST",
       error: (response) ->
         console.log(response)
       success: (response) =>
-        window.location.href = "/"
+        window.location.href = "/#{@appPrefix}/"
 
   removeLogs: (workflow_id, job_name) ->
     $.ajax
-      url: "/purge_logs/#{workflow_id}.#{job_name}",
+      url: "/#{@appPrefix}/purge_logs/#{workflow_id}.#{job_name}",
       type: "POST",
       error: (response) ->
         console.log(response)
       success: (response) =>
-        window.location.href = "/jobs/#{workflow_id}.#{job_name}"
+        window.location.href = "/#{@appPrefix}/jobs/#{workflow_id}.#{job_name}"
 
   _onOpen: ->
     $("#modalBox").foundation("reveal", "close");
@@ -230,7 +230,7 @@ class @Gush
 
   _updateGraphStatus: (workflow_id) ->
     $.ajax
-      url: "/show/#{workflow_id}.json",
+      url: "/#{@appPrefix}/show/#{workflow_id}.json",
       type: "GET",
       error: (response) ->
         console.log(response)
